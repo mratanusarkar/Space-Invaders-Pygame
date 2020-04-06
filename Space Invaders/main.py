@@ -13,7 +13,7 @@ life = 3
 kills = 0
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
-bullet_velocity = 5.0
+weapon_shot_velocity = 5.0
 
 # initialize pygame
 pygame.init()
@@ -68,7 +68,7 @@ bullet_height = 32
 bullet_x = player_x + player_width / 2 - bullet_width / 2
 bullet_y = player_y + bullet_height / 2
 bullet_dx = 0
-bullet_dy = bullet_velocity
+bullet_dy = weapon_shot_velocity
 fired = False
 
 
@@ -76,6 +76,26 @@ def bullet(x, y):
     global fired
     if fired:
         window.blit(bullet_img, (x, y))
+
+
+# laser beam
+laser_img = pygame.image.load("res/images/beam.png")  # 24 x 24 px image
+laser_width = 24
+laser_height = 24
+laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+laser_y = enemy_y + laser_height / 2
+laser_dx = 0
+laser_dy = weapon_shot_velocity
+beamed = False
+shoot_probability = 0.3
+shoot_timer = 0
+relaxation_time = 100
+
+
+def laser(x, y):
+    global beamed
+    if beamed:
+        window.blit(laser_img, (x, y))
 
 
 def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
@@ -99,16 +119,45 @@ def kill_enemy():
     global bullet_x
     global bullet_y
     global score
+    global kills
     fired = False
     bullet_x = player_x + player_width / 2 - bullet_width / 2
     bullet_y = player_y + bullet_height / 2
     score += 1
-    print(score)
+    kills += 1
+    print("Score:", score)
     respawn()
 
 
+def rebirth():
+    global player_x
+    global player_y
+    player_x = (WIDTH / 2) - (player_width / 2)
+    player_y = (HEIGHT / 10) * 9 - (player_height / 2)
+
+
+def gameover():
+    global running
+    print("GAME OVER !!")
+    print("Your Score:", score)
+    print("Play Again :)")
+    running = False
+
+
 def kill_player():
-    pass
+    global beamed
+    global laser_x
+    global laser_y
+    global life
+    beamed = False
+    laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+    laser_y = enemy_y + laser_height / 2
+    life -= 1
+    print("Life Left:", life)
+    if life > 0:
+        rebirth()
+    else:
+        gameover()
 
 
 # game loop begins
@@ -167,22 +216,40 @@ while running:
         player_x += player_dx
     if LEFT_ARROW_KEY_PRESSED:
         player_x -= player_dx
+    # bullet firing
     if (SPACE_BAR_PRESSED or UP_ARROW_KEY_PRESSED) and not fired:
         fired = True
         bullet_x = player_x + player_width / 2 - bullet_width / 2
         bullet_y = player_y + bullet_height / 2
+    # laser beaming
+    if not beamed:
+        shoot_timer += 1
+        if shoot_timer == relaxation_time:
+            shoot_timer = 0
+            random_chance = random.randint(0, 100)
+            if random_chance <= (shoot_probability * 100):
+                beamed = True
+                laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+                laser_y = enemy_y + laser_height / 2
     # enemy movement
     enemy_x += enemy_dx
     # bullet movement
     if fired:
         bullet_y -= bullet_dy
+    # laser movement
+    if beamed:
+        laser_y += laser_dy
 
     # collision check
     bullet_enemy_collision = collision_check(bullet_x, bullet_y, bullet_width, enemy_x, enemy_y, enemy_width)
     if bullet_enemy_collision:
         kill_enemy()
+    laser_player_collision = collision_check(laser_x, laser_y, laser_width, player_x, player_y, player_width)
+    if laser_player_collision:
+        kill_player()
     enemy_player_collision = collision_check(enemy_x, enemy_y, enemy_width, player_x, player_y, player_width)
     if enemy_player_collision:
+        kill_enemy()
         kill_player()
 
     # boundary check: 0 <= x <= WIDTH, 0 <= y <= HEIGHT
@@ -203,8 +270,14 @@ while running:
         fired = False
         bullet_x = player_x + player_width / 2 - bullet_width / 2
         bullet_y = player_y + bullet_height / 2
+    # laser
+    if laser_y > HEIGHT:
+        beamed = False
+        laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+        laser_y = enemy_y + laser_height / 2
 
     # create frame by placing objects on the surface
+    laser(laser_x, laser_y)
     enemy(enemy_x, enemy_y)
     bullet(bullet_x, bullet_y)
     player(player_x, player_y)
