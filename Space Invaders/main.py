@@ -11,6 +11,7 @@ running = True
 score = 0
 life = 3
 kills = 0
+difficulty_level = 1
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
@@ -120,12 +121,16 @@ def kill_enemy():
     global bullet_y
     global score
     global kills
+    global difficulty_level
     fired = False
     bullet_x = player_x + player_width / 2 - bullet_width / 2
     bullet_y = player_y + bullet_height / 2
-    score += 1
+    score = score + 10 * difficulty_level
     kills += 1
+    if kills % 10 == 0:
+        difficulty_level *= 2
     print("Score:", score)
+    print("difficulty:", difficulty_level)
     respawn()
 
 
@@ -139,6 +144,7 @@ def rebirth():
 def gameover():
     global running
     print("GAME OVER !!")
+    print("you died at level:", difficulty_level)
     print("Your Score:", score)
     print("Play Again :)")
     running = False
@@ -232,7 +238,7 @@ while running:
                 laser_x = enemy_x + enemy_width / 2 - laser_width / 2
                 laser_y = enemy_y + laser_height / 2
     # enemy movement
-    enemy_x += enemy_dx
+    enemy_x += enemy_dx * float(difficulty_level)
     # bullet movement
     if fired:
         bullet_y -= bullet_dy
