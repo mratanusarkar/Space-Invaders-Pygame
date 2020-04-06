@@ -8,9 +8,12 @@ HEIGHT = 600
 
 # global variables
 running = True
+score = 0
+life = 3
+kills = 0
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
-bullet_velocity = 6.0
+bullet_velocity = 5.0
 
 # initialize pygame
 pygame.init()
@@ -73,6 +76,39 @@ def bullet(x, y):
     global fired
     if fired:
         window.blit(bullet_img, (x, y))
+
+
+def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
+    x1_cm = object1_x + object1_diameter / 2
+    y1_cm = object1_y + object1_diameter / 2
+    x2_cm = object2_x + object2_diameter / 2
+    y2_cm = object2_y + object2_diameter / 2
+    distance = math.sqrt(math.pow((x2_cm - x1_cm), 2) + math.pow((y2_cm - y1_cm), 2))
+    return distance < ((object1_diameter + object2_diameter) / 2)
+
+
+def respawn():
+    global enemy_x
+    global enemy_y
+    enemy_x = random.randint(0, (WIDTH - enemy_width))
+    enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+
+
+def kill_enemy():
+    global fired
+    global bullet_x
+    global bullet_y
+    global score
+    fired = False
+    bullet_x = player_x + player_width / 2 - bullet_width / 2
+    bullet_y = player_y + bullet_height / 2
+    score += 1
+    print(score)
+    respawn()
+
+
+def kill_player():
+    pass
 
 
 # game loop begins
@@ -138,7 +174,16 @@ while running:
     # enemy movement
     enemy_x += enemy_dx
     # bullet movement
-    bullet_y -= bullet_dy
+    if fired:
+        bullet_y -= bullet_dy
+
+    # collision check
+    bullet_enemy_collision = collision_check(bullet_x, bullet_y, bullet_width, enemy_x, enemy_y, enemy_width)
+    if bullet_enemy_collision:
+        kill_enemy()
+    enemy_player_collision = collision_check(enemy_x, enemy_y, enemy_width, player_x, player_y, player_width)
+    if enemy_player_collision:
+        kill_player()
 
     # boundary check: 0 <= x <= WIDTH, 0 <= y <= HEIGHT
     # player spaceship
