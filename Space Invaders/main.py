@@ -2,6 +2,8 @@ import pygame
 import random
 import math
 from pygame import mixer
+import time
+# import sched
 
 # game constants
 WIDTH = 800
@@ -18,6 +20,10 @@ level = 1
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
+single_frame_rendering_time = 0
+total_time = 0
+frame_count = 0
+fps = 0
 
 # initialize pygame
 pygame.init()
@@ -36,24 +42,19 @@ pygame.display.set_icon(window_icon)
 
 # create background
 background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
+background_music_paths = ["res/sounds/Space_Invaders_Music.ogg",
+                          "res/sounds/Space_Invaders_Music_x2.ogg",
+                          "res/sounds/Space_Invaders_Music_x4.ogg",
+                          "res/sounds/Space_Invaders_Music_x8.ogg",
+                          "res/sounds/Space_Invaders_Music_x16.ogg",
+                          "res/sounds/Space_Invaders_Music_x32.ogg"]
 
 
 def init_background_music():
     if difficulty == 1:
-        background_music_path = "res/sounds/Space_Invaders_Music.ogg"
-    elif difficulty == 2:
-        background_music_path = "res/sounds/Space_Invaders_Music_x2.ogg"
-    elif difficulty == 3:
-        background_music_path = "res/sounds/Space_Invaders_Music_x4.ogg"
-    elif difficulty == 4:
-        background_music_path = "res/sounds/Space_Invaders_Music_x8.ogg"
-    elif difficulty == 5:
-        background_music_path = "res/sounds/Space_Invaders_Music_x16.ogg"
-    else:
-        background_music_path = "res/sounds/Space_Invaders_Music_x32.ogg"
-    mixer.quit()
-    mixer.init()
-    mixer.music.load(background_music_path)
+        mixer.quit()
+        mixer.init()
+    mixer.music.load(background_music_paths[difficulty - 1])
     mixer.music.play(-1)
 
 
@@ -142,12 +143,19 @@ def scoreboard():
     difficulty_sprint = font.render("DIFFICULTY : " + str(difficulty), True, (255, 255, 255))
     life_sprint = font.render("LIFE LEFT : " + str(life) + " | " + ("@ " * life), True, (255, 255, 255))
 
+    # performance info
+    fps_sprint = font.render("FPS : " + str(fps), True, (255, 255, 255))
+    frame_time_in_ms = round(single_frame_rendering_time * 1000, 2)
+    frame_time_sprint = font.render("FT : "+str(frame_time_in_ms) + " ms", True, (255, 255, 255))
+
     # place the font sprites on the screen
     window.blit(score_sprint, (x_offset, y_offset))
     window.blit(highest_score_sprint, (x_offset, y_offset + 20))
     window.blit(level_sprint, (x_offset, y_offset + 40))
     window.blit(difficulty_sprint, (x_offset, y_offset + 60))
     window.blit(life_sprint, (x_offset, y_offset + 80))
+    window.blit(fps_sprint, (WIDTH - 80, y_offset))
+    window.blit(frame_time_sprint, (WIDTH - 80, y_offset + 20))
 
 
 def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
@@ -195,6 +203,16 @@ def rebirth():
     player_y = (HEIGHT / 10) * 9 - (player_height / 2)
 
 
+def gameover_screen():
+    mixer.quit()
+    scoreboard()
+    font = pygame.font.SysFont("freesansbold", 64)
+    gameover_sprint = font.render("GAME OVER", True, (255, 255, 255))
+    window.blit(gameover_sprint, (WIDTH / 2 - 140, HEIGHT / 2 - 32))
+    pygame.display.update()
+    time.sleep(5.0)
+
+
 def gameover():
     global running
     global score
@@ -215,6 +233,7 @@ def gameover():
     print("Try Again !!")
     print("----------------")
     running = False
+    gameover_screen()
 
 
 def kill_player():
@@ -234,7 +253,6 @@ def kill_player():
         gameover()
 
 
-# game loop begins
 def destroy_weapons():
     global fired
     global beamed
@@ -251,7 +269,26 @@ def destroy_weapons():
     laser_y = enemy_y + laser_height / 2
 
 
+# timer = sched.scheduler(time.time, time.sleep)
+#
+#
+# def calculate_fps(sc):
+#     global frame_count
+#     fps = frame_count
+#     print("FPS =", fps)
+#     frame_count = 0
+#     timer.enter(60, 1, calculate_fps, (sc,))
+#
+#
+# timer.enter(60, 1, calculate_fps, (timer, ))
+# timer.run()
+
+
+# game loop begins
 while running:
+    # start of frame timing
+    start_time = time.time()
+
     # background
     window.fill((0, 0, 0))
     window.blit(background_img, (0, 0))
@@ -380,3 +417,17 @@ while running:
 
     # render the display
     pygame.display.update()
+
+    # end of rendering, end on a frame
+    frame_count += 1
+    end_time = time.time()
+    single_frame_rendering_time = end_time - start_time
+    # fps = 1 / render_time
+
+    total_time = total_time + single_frame_rendering_time
+    if total_time >= 1.0:
+        fps = frame_count
+        frame_count = 0
+        total_time = 0
+    # print("rendering time:", single_frame_rendering_time)
+    # print("FPS:", fps)
