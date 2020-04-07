@@ -9,9 +9,11 @@ HEIGHT = 600
 # global variables
 running = True
 score = 0
+highest_score = 0
 life = 3
 kills = 0
-difficulty_level = 1
+difficulty = 1
+level = 1
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
@@ -99,6 +101,27 @@ def laser(x, y):
         window.blit(laser_img, (x, y))
 
 
+def scoreboard():
+    x_offset = 10
+    y_offset = 10
+    # sent font type and size
+    font = pygame.font.SysFont("calibre", 16)
+
+    # render font
+    score_sprint = font.render("SCORE : " + str(score), True, (255, 255, 255))
+    highest_score_sprint = font.render("HI-SCORE : " + str(highest_score), True, (255, 255, 255))
+    level_sprint = font.render("LEVEL : " + str(level), True, (255, 255, 255))
+    difficulty_sprint = font.render("DIFFICULTY : " + str(difficulty), True, (255, 255, 255))
+    life_sprint = font.render("LIFE LEFT : " + str(life) + " | " + ("@ " * life), True, (255, 255, 255))
+
+    # place the font sprites on the screen
+    window.blit(score_sprint, (x_offset, y_offset))
+    window.blit(highest_score_sprint, (x_offset, y_offset + 20))
+    window.blit(level_sprint, (x_offset, y_offset + 40))
+    window.blit(difficulty_sprint, (x_offset, y_offset + 60))
+    window.blit(life_sprint, (x_offset, y_offset + 80))
+
+
 def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
     x1_cm = object1_x + object1_diameter / 2
     y1_cm = object1_y + object1_diameter / 2
@@ -121,16 +144,17 @@ def kill_enemy():
     global bullet_y
     global score
     global kills
-    global difficulty_level
+    global difficulty
     fired = False
     bullet_x = player_x + player_width / 2 - bullet_width / 2
     bullet_y = player_y + bullet_height / 2
-    score = score + 10 * difficulty_level
+    score = score + 10 * difficulty
     kills += 1
     if kills % 10 == 0:
-        difficulty_level *= 2
+        difficulty += 1
     print("Score:", score)
-    print("difficulty:", difficulty_level)
+    print("level:", level)
+    print("difficulty:", difficulty)
     respawn()
 
 
@@ -143,10 +167,23 @@ def rebirth():
 
 def gameover():
     global running
+    global score
+    global highest_score
+
+    if score > highest_score:
+        highest_score = score
+
+    # console display
+    print("----------------")
     print("GAME OVER !!")
-    print("you died at level:", difficulty_level)
+    print("----------------")
+    print("you died at")
+    print("Level:", level)
+    print("difficulty:", difficulty)
     print("Your Score:", score)
-    print("Play Again :)")
+    print("----------------")
+    print("Try Again !!")
+    print("----------------")
     running = False
 
 
@@ -167,6 +204,21 @@ def kill_player():
 
 
 # game loop begins
+def destroy_weapons():
+    global fired
+    global beamed
+    global bullet_x
+    global bullet_y
+    global laser_x
+    global laser_y
+    fired = False
+    beamed = False
+    bullet_x = player_x + player_width / 2 - bullet_width / 2
+    bullet_y = player_y + bullet_height / 2
+    laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+    laser_y = enemy_y + laser_height / 2
+
+
 while running:
     # background
     window.fill((0, 0, 0))
@@ -238,7 +290,7 @@ while running:
                 laser_x = enemy_x + enemy_width / 2 - laser_width / 2
                 laser_y = enemy_y + laser_height / 2
     # enemy movement
-    enemy_x += enemy_dx * float(difficulty_level)
+    enemy_x += enemy_dx * float(2 ** (difficulty - 1))
     # bullet movement
     if fired:
         bullet_y -= bullet_dy
@@ -257,6 +309,9 @@ while running:
     if enemy_player_collision:
         kill_enemy()
         kill_player()
+    bullet_laser_collision = collision_check(bullet_x, bullet_y, bullet_width, laser_x, laser_y, laser_width)
+    if bullet_laser_collision:
+        destroy_weapons()
 
     # boundary check: 0 <= x <= WIDTH, 0 <= y <= HEIGHT
     # player spaceship
@@ -283,6 +338,7 @@ while running:
         laser_y = enemy_y + laser_height / 2
 
     # create frame by placing objects on the surface
+    scoreboard()
     laser(laser_x, laser_y)
     enemy(enemy_x, enemy_y)
     bullet(bullet_x, bullet_y)
