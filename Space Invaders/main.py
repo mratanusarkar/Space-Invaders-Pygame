@@ -1,6 +1,8 @@
 import pygame
 import random
 import math
+import soundfile as sf
+from pygame import mixer
 
 # game constants
 WIDTH = 800
@@ -35,6 +37,18 @@ pygame.display.set_icon(window_icon)
 
 # create background
 background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
+background_music_path = "res/sounds/Space_Invaders_Music.ogg"
+background_music, background_music_framerate = sf.read(background_music_path)
+
+
+def init_background_music():
+    pygame.mixer.quit()
+    pygame.mixer.init(frequency=background_music_framerate)
+    pygame.mixer.music.load(background_music_path)
+    pygame.mixer.music.play(-1)
+
+
+init_background_music()
 
 # create player
 player_img = pygame.image.load("res/images/spaceship.png")  # 64 x 64 px image
@@ -44,6 +58,7 @@ player_x = (WIDTH / 2) - (player_width / 2)
 player_y = (HEIGHT / 10) * 9 - (player_height / 2)
 player_dx = initial_player_velocity
 player_dy = 0
+player_kill_sound = mixer.Sound("res/sounds/explosion.wav")
 
 
 def player(x, y):
@@ -58,6 +73,7 @@ enemy_x = random.randint(0, (WIDTH - enemy_width))
 enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
 enemy_dx = initial_enemy_velocity
 enemy_dy = (HEIGHT / 10) / 2
+enemy_kill_sound = mixer.Sound("res/sounds/enemykill.wav")
 
 
 def enemy(x, y):
@@ -73,6 +89,7 @@ bullet_y = player_y + bullet_height / 2
 bullet_dx = 0
 bullet_dy = weapon_shot_velocity
 fired = False
+bullet_fire_sound = mixer.Sound("res/sounds/gunshot.wav")
 
 
 def bullet(x, y):
@@ -93,6 +110,8 @@ beamed = False
 shoot_probability = 0.3
 shoot_timer = 0
 relaxation_time = 100
+laser_beam_sound = mixer.Sound("res/sounds/laser.wav")
+weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
 
 
 def laser(x, y):
@@ -146,6 +165,7 @@ def kill_enemy():
     global kills
     global difficulty
     fired = False
+    enemy_kill_sound.play()
     bullet_x = player_x + player_width / 2 - bullet_width / 2
     bullet_y = player_y + bullet_height / 2
     score = score + 10 * difficulty
@@ -193,6 +213,7 @@ def kill_player():
     global laser_y
     global life
     beamed = False
+    player_kill_sound.play()
     laser_x = enemy_x + enemy_width / 2 - laser_width / 2
     laser_y = enemy_y + laser_height / 2
     life -= 1
@@ -213,6 +234,7 @@ def destroy_weapons():
     global laser_y
     fired = False
     beamed = False
+    weapon_annihilation_sound.play()
     bullet_x = player_x + player_width / 2 - bullet_width / 2
     bullet_y = player_y + bullet_height / 2
     laser_x = enemy_x + enemy_width / 2 - laser_width / 2
@@ -277,6 +299,7 @@ while running:
     # bullet firing
     if (SPACE_BAR_PRESSED or UP_ARROW_KEY_PRESSED) and not fired:
         fired = True
+        bullet_fire_sound.play()
         bullet_x = player_x + player_width / 2 - bullet_width / 2
         bullet_y = player_y + bullet_height / 2
     # laser beaming
@@ -287,6 +310,7 @@ while running:
             random_chance = random.randint(0, 100)
             if random_chance <= (shoot_probability * 100):
                 beamed = True
+                laser_beam_sound.play()
                 laser_x = enemy_x + enemy_width / 2 - laser_width / 2
                 laser_y = enemy_y + laser_height / 2
     # enemy movement
