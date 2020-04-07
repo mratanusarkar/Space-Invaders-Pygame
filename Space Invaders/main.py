@@ -1,7 +1,6 @@
 import pygame
 import random
 import math
-import soundfile as sf
 from pygame import mixer
 
 # game constants
@@ -37,15 +36,25 @@ pygame.display.set_icon(window_icon)
 
 # create background
 background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
-background_music_path = "res/sounds/Space_Invaders_Music.ogg"
-background_music, background_music_framerate = sf.read(background_music_path)
 
 
 def init_background_music():
-    pygame.mixer.quit()
-    pygame.mixer.init(frequency=background_music_framerate)
-    pygame.mixer.music.load(background_music_path)
-    pygame.mixer.music.play(-1)
+    if difficulty == 1:
+        background_music_path = "res/sounds/Space_Invaders_Music.ogg"
+    elif difficulty == 2:
+        background_music_path = "res/sounds/Space_Invaders_Music_x2.ogg"
+    elif difficulty == 3:
+        background_music_path = "res/sounds/Space_Invaders_Music_x4.ogg"
+    elif difficulty == 4:
+        background_music_path = "res/sounds/Space_Invaders_Music_x8.ogg"
+    elif difficulty == 5:
+        background_music_path = "res/sounds/Space_Invaders_Music_x16.ogg"
+    else:
+        background_music_path = "res/sounds/Space_Invaders_Music_x32.ogg"
+    mixer.quit()
+    mixer.init()
+    mixer.music.load(background_music_path)
+    mixer.music.play(-1)
 
 
 init_background_music()
@@ -123,10 +132,10 @@ def laser(x, y):
 def scoreboard():
     x_offset = 10
     y_offset = 10
-    # sent font type and size
+    # set font type and size
     font = pygame.font.SysFont("calibre", 16)
 
-    # render font
+    # render font and text sprites
     score_sprint = font.render("SCORE : " + str(score), True, (255, 255, 255))
     highest_score_sprint = font.render("HI-SCORE : " + str(highest_score), True, (255, 255, 255))
     level_sprint = font.render("LEVEL : " + str(level), True, (255, 255, 255))
@@ -172,6 +181,7 @@ def kill_enemy():
     kills += 1
     if kills % 10 == 0:
         difficulty += 1
+        init_background_music()
     print("Score:", score)
     print("level:", level)
     print("difficulty:", difficulty)
