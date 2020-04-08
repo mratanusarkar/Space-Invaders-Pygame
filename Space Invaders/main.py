@@ -1,8 +1,14 @@
+# Author: Atanu Sarkar
+# Space Invaders (my version)
+# v1.1.0
+# 09-April-2020, 02:11 AM (IST)
+
 import pygame
 import random
 import math
 from pygame import mixer
 import time
+
 # import sched
 
 # game constants
@@ -24,6 +30,13 @@ single_frame_rendering_time = 0
 total_time = 0
 frame_count = 0
 fps = 0
+
+# game objects
+player = type('Player', (), {})()
+bullet = type('Bullet', (), {})()
+enemies = []
+lasers = []
+weapon_annihilation_sound = None
 
 # initialize pygame
 pygame.init()
@@ -58,76 +71,83 @@ def init_background_music():
     mixer.music.play(-1)
 
 
-init_background_music()
+# create player class
+class Player:
+    def __init__(self, img_path, width, height, x, y, dx, dy, kill_sound_path):
+        self.img_path = img_path
+        self.img = pygame.image.load(self.img_path)
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.kill_sound_path = kill_sound_path
+        self.kill_sound = mixer.Sound(self.kill_sound_path)
 
-# create player
-player_img = pygame.image.load("res/images/spaceship.png")  # 64 x 64 px image
-player_width = 64
-player_height = 64
-player_x = (WIDTH / 2) - (player_width / 2)
-player_y = (HEIGHT / 10) * 9 - (player_height / 2)
-player_dx = initial_player_velocity
-player_dy = 0
-player_kill_sound = mixer.Sound("res/sounds/explosion.wav")
-
-
-def player(x, y):
-    window.blit(player_img, (x, y))
-
-
-# create enemy
-enemy_img = pygame.image.load("res/images/enemy.png")  # 64 x 64 px image
-enemy_width = 64
-enemy_height = 64
-enemy_x = random.randint(0, (WIDTH - enemy_width))
-enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
-enemy_dx = initial_enemy_velocity
-enemy_dy = (HEIGHT / 10) / 2
-enemy_kill_sound = mixer.Sound("res/sounds/enemykill.wav")
+    def draw(self):
+        window.blit(self.img, (self.x, self.y))
 
 
-def enemy(x, y):
-    window.blit(enemy_img, (x, y))
+# create enemy class
+class Enemy:
+    def __init__(self, img_path, width, height, x, y, dx, dy, kill_sound_path):
+        self.img_path = img_path
+        self.img = pygame.image.load(self.img_path)
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.kill_sound_path = kill_sound_path
+        self.kill_sound = mixer.Sound(self.kill_sound_path)
+
+    def draw(self):
+        window.blit(self.img, (self.x, self.y))
 
 
-# bullet
-bullet_img = pygame.image.load("res/images/bullet.png")  # 32 x 32 px image
-bullet_width = 32
-bullet_height = 32
-bullet_x = player_x + player_width / 2 - bullet_width / 2
-bullet_y = player_y + bullet_height / 2
-bullet_dx = 0
-bullet_dy = weapon_shot_velocity
-fired = False
-bullet_fire_sound = mixer.Sound("res/sounds/gunshot.wav")
+# create bullet class
+class Bullet:
+    def __init__(self, img_path, width, height, x, y, dx, dy, fire_sound_path):
+        self.img_path = img_path
+        self.img = pygame.image.load(self.img_path)
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.fired = False
+        self.fire_sound_path = fire_sound_path
+        self.fire_sound = mixer.Sound(self.fire_sound_path)
+
+    def draw(self):
+        if self.fired:
+            window.blit(self.img, (self.x, self.y))
 
 
-def bullet(x, y):
-    global fired
-    if fired:
-        window.blit(bullet_img, (x, y))
+# create laser class
+class Laser:
+    def __init__(self, img_path, width, height, x, y, dx, dy, shoot_probability, relaxation_time, beam_sound_path):
+        self.img_path = img_path
+        self.img = pygame.image.load(self.img_path)
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+        self.dx = dx
+        self.dy = dy
+        self.beamed = False
+        self.shoot_probability = shoot_probability
+        self.shoot_timer = 0
+        self.relaxation_time = relaxation_time
+        self.beam_sound_path = beam_sound_path
+        self.beam_sound = mixer.Sound(self.beam_sound_path)
 
-
-# laser beam
-laser_img = pygame.image.load("res/images/beam.png")  # 24 x 24 px image
-laser_width = 24
-laser_height = 24
-laser_x = enemy_x + enemy_width / 2 - laser_width / 2
-laser_y = enemy_y + laser_height / 2
-laser_dx = 0
-laser_dy = weapon_shot_velocity
-beamed = False
-shoot_probability = 0.3
-shoot_timer = 0
-relaxation_time = 100
-laser_beam_sound = mixer.Sound("res/sounds/laser.wav")
-weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
-
-
-def laser(x, y):
-    global beamed
-    if beamed:
-        window.blit(laser_img, (x, y))
+    def draw(self):
+        if self.beamed:
+            window.blit(self.img, (self.x, self.y))
 
 
 def scoreboard():
@@ -146,7 +166,7 @@ def scoreboard():
     # performance info
     fps_sprint = font.render("FPS : " + str(fps), True, (255, 255, 255))
     frame_time_in_ms = round(single_frame_rendering_time * 1000, 2)
-    frame_time_sprint = font.render("FT : "+str(frame_time_in_ms) + " ms", True, (255, 255, 255))
+    frame_time_sprint = font.render("FT : " + str(frame_time_in_ms) + " ms", True, (255, 255, 255))
 
     # place the font sprites on the screen
     window.blit(score_sprint, (x_offset, y_offset))
@@ -158,33 +178,38 @@ def scoreboard():
     window.blit(frame_time_sprint, (WIDTH - 80, y_offset + 20))
 
 
-def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
-    x1_cm = object1_x + object1_diameter / 2
-    y1_cm = object1_y + object1_diameter / 2
-    x2_cm = object2_x + object2_diameter / 2
-    y2_cm = object2_y + object2_diameter / 2
+def collision_check(object1, object2):
+    x1_cm = object1.x + object1.width / 2
+    y1_cm = object1.y + object1.width / 2
+    x2_cm = object2.x + object2.width / 2
+    y2_cm = object2.y + object2.width / 2
     distance = math.sqrt(math.pow((x2_cm - x1_cm), 2) + math.pow((y2_cm - y1_cm), 2))
-    return distance < ((object1_diameter + object2_diameter) / 2)
+    return distance < ((object1.width + object2.width) / 2)
 
 
-def respawn():
-    global enemy_x
-    global enemy_y
-    enemy_x = random.randint(0, (WIDTH - enemy_width))
-    enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+# def collision_check(object1_x, object1_y, object1_diameter, object2_x, object2_y, object2_diameter):
+#     x1_cm = object1_x + object1_diameter / 2
+#     y1_cm = object1_y + object1_diameter / 2
+#     x2_cm = object2_x + object2_diameter / 2
+#     y2_cm = object2_y + object2_diameter / 2
+#     distance = math.sqrt(math.pow((x2_cm - x1_cm), 2) + math.pow((y2_cm - y1_cm), 2))
+#     return distance < ((object1_diameter + object2_diameter) / 2)
 
 
-def kill_enemy():
-    global fired
-    global bullet_x
-    global bullet_y
+def respawn(enemy_obj):
+    enemy_obj.x = random.randint(0, (WIDTH - enemy_obj.width))
+    enemy_obj.y = random.randint(((HEIGHT / 10) * 1 - (enemy_obj.height / 2)),
+                                 ((HEIGHT / 10) * 4 - (enemy_obj.height / 2)))
+
+
+def kill_enemy(player_obj, bullet_obj, enemy_obj):
     global score
     global kills
     global difficulty
-    fired = False
-    enemy_kill_sound.play()
-    bullet_x = player_x + player_width / 2 - bullet_width / 2
-    bullet_y = player_y + bullet_height / 2
+    bullet_obj.fired = False
+    enemy_obj.kill_sound.play()
+    bullet_obj.x = player_obj.x + player_obj.width / 2 - bullet_obj.width / 2
+    bullet_obj.y = player_obj.y + bullet_obj.height / 2
     score = score + 10 * difficulty
     kills += 1
     if kills % 10 == 0:
@@ -193,14 +218,12 @@ def kill_enemy():
     print("Score:", score)
     print("level:", level)
     print("difficulty:", difficulty)
-    respawn()
+    respawn(enemy_obj)
 
 
-def rebirth():
-    global player_x
-    global player_y
-    player_x = (WIDTH / 2) - (player_width / 2)
-    player_y = (HEIGHT / 10) * 9 - (player_height / 2)
+def rebirth(player_obj):
+    player_obj.x = (WIDTH / 2) - (player_obj.width / 2)
+    player_obj.y = (HEIGHT / 10) * 9 - (player_obj.height / 2)
 
 
 def gameover_screen():
@@ -236,37 +259,28 @@ def gameover():
     gameover_screen()
 
 
-def kill_player():
-    global beamed
-    global laser_x
-    global laser_y
+def kill_player(player_obj, enemy_obj, laser_obj):
     global life
-    beamed = False
-    player_kill_sound.play()
-    laser_x = enemy_x + enemy_width / 2 - laser_width / 2
-    laser_y = enemy_y + laser_height / 2
+    laser_obj.beamed = False
+    player_obj.kill_sound.play()
+    laser_obj.x = enemy_obj.x + enemy_obj.width / 2 - laser_obj.width / 2
+    laser_obj.y = enemy_obj.y + laser_obj.height / 2
     life -= 1
     print("Life Left:", life)
     if life > 0:
-        rebirth()
+        rebirth(player_obj)
     else:
         gameover()
 
 
-def destroy_weapons():
-    global fired
-    global beamed
-    global bullet_x
-    global bullet_y
-    global laser_x
-    global laser_y
-    fired = False
-    beamed = False
+def destroy_weapons(player_obj, bullet_obj, enemy_obj, laser_obj):
+    bullet_obj.fired = False
+    laser_obj.beamed = False
     weapon_annihilation_sound.play()
-    bullet_x = player_x + player_width / 2 - bullet_width / 2
-    bullet_y = player_y + bullet_height / 2
-    laser_x = enemy_x + enemy_width / 2 - laser_width / 2
-    laser_y = enemy_y + laser_height / 2
+    bullet_obj.x = player_obj.x + player_obj.width / 2 - bullet_obj.width / 2
+    bullet_obj.y = player_obj.y + bullet_obj.height / 2
+    laser_obj.x = enemy_obj.x + enemy_obj.width / 2 - laser_obj.width / 2
+    laser_obj.y = enemy_obj.y + laser_obj.height / 2
 
 
 # timer = sched.scheduler(time.time, time.sleep)
@@ -284,7 +298,79 @@ def destroy_weapons():
 # timer.run()
 
 
-# game loop begins
+def init_game():
+    # player
+    player_img_path = "res/images/spaceship.png"  # 64 x 64 px image
+    player_width = 64
+    player_height = 64
+    player_x = (WIDTH / 2) - (player_width / 2)
+    player_y = (HEIGHT / 10) * 9 - (player_height / 2)
+    player_dx = initial_player_velocity
+    player_dy = 0
+    player_kill_sound_path = "res/sounds/explosion.wav"
+
+    global player
+    player = Player(player_img_path, player_width, player_height, player_x, player_y, player_dx, player_dy,
+                    player_kill_sound_path)
+
+    # bullet
+    bullet_img_path = "res/images/bullet.png"  # 32 x 32 px image
+    bullet_width = 32
+    bullet_height = 32
+    bullet_x = player_x + player_width / 2 - bullet_width / 2
+    bullet_y = player_y + bullet_height / 2
+    bullet_dx = 0
+    bullet_dy = weapon_shot_velocity
+    bullet_fire_sound_path = "res/sounds/gunshot.wav"
+
+    global bullet
+    bullet = Bullet(bullet_img_path, bullet_width, bullet_height, bullet_x, bullet_y, bullet_dx, bullet_dy,
+                    bullet_fire_sound_path)
+
+    # enemy (number of enemy = level number)
+    enemy_img_path = "res/images/enemy.png"  # 64 x 64 px image
+    enemy_width = 64
+    enemy_height = 64
+    enemy_dx = initial_enemy_velocity
+    enemy_dy = (HEIGHT / 10) / 2
+    enemy_kill_sound_path = "res/sounds/enemykill.wav"
+
+    # laser beam (equals number of enemies and retains corresponding enemy position)
+    laser_img_path = "res/images/beam.png"  # 24 x 24 px image
+    laser_width = 24
+    laser_height = 24
+    laser_dx = 0
+    laser_dy = weapon_shot_velocity
+    shoot_probability = 0.3
+    relaxation_time = 100
+    laser_beam_sound_path = "res/sounds/laser.wav"
+
+    global enemies
+    global lasers
+
+    for lev in range(level):
+        enemy_x = random.randint(0, (WIDTH - enemy_width))
+        enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+        laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+        laser_y = enemy_y + laser_height / 2
+
+        enemy_obj = Enemy(enemy_img_path, enemy_width, enemy_height, enemy_x, enemy_y, enemy_dx, enemy_dy,
+                          enemy_kill_sound_path)
+        enemies.append(enemy_obj)
+
+        laser_obj = Laser(laser_img_path, laser_width, laser_height, laser_x, laser_y, laser_dx, laser_dy,
+                          shoot_probability, relaxation_time, laser_beam_sound_path)
+        lasers.append(laser_obj)
+
+    global weapon_annihilation_sound
+    weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
+
+
+# init game
+init_game()
+init_background_music()
+
+# main game loop begins
 while running:
     # start of frame timing
     start_time = time.time()
@@ -340,80 +426,94 @@ while running:
     # manipulate game objects based on events and player actions
     # player spaceship movement
     if RIGHT_ARROW_KEY_PRESSED:
-        player_x += player_dx
+        player.x += player.dx
     if LEFT_ARROW_KEY_PRESSED:
-        player_x -= player_dx
+        player.x -= player.dx
     # bullet firing
-    if (SPACE_BAR_PRESSED or UP_ARROW_KEY_PRESSED) and not fired:
-        fired = True
-        bullet_fire_sound.play()
-        bullet_x = player_x + player_width / 2 - bullet_width / 2
-        bullet_y = player_y + bullet_height / 2
-    # laser beaming
-    if not beamed:
-        shoot_timer += 1
-        if shoot_timer == relaxation_time:
-            shoot_timer = 0
-            random_chance = random.randint(0, 100)
-            if random_chance <= (shoot_probability * 100):
-                beamed = True
-                laser_beam_sound.play()
-                laser_x = enemy_x + enemy_width / 2 - laser_width / 2
-                laser_y = enemy_y + laser_height / 2
-    # enemy movement
-    enemy_x += enemy_dx * float(2 ** (difficulty - 1))
+    if (SPACE_BAR_PRESSED or UP_ARROW_KEY_PRESSED) and not bullet.fired:
+        bullet.fired = True
+        bullet.fire_sound.play()
+        bullet.x = player.x + player.width / 2 - bullet.width / 2
+        bullet.y = player.y + bullet.height / 2
     # bullet movement
-    if fired:
-        bullet_y -= bullet_dy
-    # laser movement
-    if beamed:
-        laser_y += laser_dy
+    if bullet.fired:
+        bullet.y -= bullet.dy
+
+    # iter through every enemies and lasers
+    for i in range(len(enemies)):
+        # laser beaming
+        if not lasers[i].beamed:
+            lasers[i].shoot_timer += 1
+            if lasers[i].shoot_timer == lasers[i].relaxation_time:
+                lasers[i].shoot_timer = 0
+                random_chance = random.randint(0, 100)
+                if random_chance <= (lasers[i].shoot_probability * 100):
+                    lasers[i].beamed = True
+                    lasers[i].beam_sound.play()
+                    lasers[i].x = enemies[i].x + enemies[i].width / 2 - lasers[i].width / 2
+                    lasers[i].y = enemies[i].y + lasers[i].height / 2
+        # enemy movement
+        enemies[i].x += enemies[i].dx * float(2 ** (difficulty - 1))
+        # laser movement
+        if lasers[i].beamed:
+            lasers[i].y += lasers[i].dy
 
     # collision check
-    bullet_enemy_collision = collision_check(bullet_x, bullet_y, bullet_width, enemy_x, enemy_y, enemy_width)
-    if bullet_enemy_collision:
-        kill_enemy()
-    laser_player_collision = collision_check(laser_x, laser_y, laser_width, player_x, player_y, player_width)
-    if laser_player_collision:
-        kill_player()
-    enemy_player_collision = collision_check(enemy_x, enemy_y, enemy_width, player_x, player_y, player_width)
-    if enemy_player_collision:
-        kill_enemy()
-        kill_player()
-    bullet_laser_collision = collision_check(bullet_x, bullet_y, bullet_width, laser_x, laser_y, laser_width)
-    if bullet_laser_collision:
-        destroy_weapons()
+    for i in range(len(enemies)):
+        bullet_enemy_collision = collision_check(bullet, enemies[i])
+        if bullet_enemy_collision:
+            kill_enemy(player, bullet, enemies[i])
+
+    for i in range(len(lasers)):
+        laser_player_collision = collision_check(lasers[i], player)
+        if laser_player_collision:
+            kill_player(player, enemies[i], lasers[i])
+
+    for i in range(len(enemies)):
+        enemy_player_collision = collision_check(enemies[i], player)
+        if enemy_player_collision:
+            kill_enemy(player, bullet, enemies[i])
+            kill_player(player, enemies[i], lasers[i])
+
+    for i in range(len(lasers)):
+        bullet_laser_collision = collision_check(bullet, lasers[i])
+        if bullet_laser_collision:
+            destroy_weapons(player, bullet, enemies[i], lasers[i])
 
     # boundary check: 0 <= x <= WIDTH, 0 <= y <= HEIGHT
     # player spaceship
-    if player_x < 0:
-        player_x = 0
-    if player_x > WIDTH - player_width:
-        player_x = WIDTH - player_width
+    if player.x < 0:
+        player.x = 0
+    if player.x > WIDTH - player.width:
+        player.x = WIDTH - player.width
     # enemy
-    if enemy_x <= 0:
-        enemy_dx = abs(enemy_dx) * 1
-        enemy_y += enemy_dy
-    if enemy_x >= WIDTH - enemy_width:
-        enemy_dx = abs(enemy_dx) * -1
-        enemy_y += enemy_dy
+    for enemy in enemies:
+        if enemy.x <= 0:
+            enemy.dx = abs(enemy.dx) * 1
+            enemy.y += enemy.dy
+        if enemy.x >= WIDTH - enemy.width:
+            enemy.dx = abs(enemy.dx) * -1
+            enemy.y += enemy.dy
     # bullet
-    if bullet_y < 0:
-        fired = False
-        bullet_x = player_x + player_width / 2 - bullet_width / 2
-        bullet_y = player_y + bullet_height / 2
+    if bullet.y < 0:
+        bullet.fired = False
+        bullet.x = player.x + player.width / 2 - bullet.width / 2
+        bullet.y = player.y + bullet.height / 2
     # laser
-    if laser_y > HEIGHT:
-        beamed = False
-        laser_x = enemy_x + enemy_width / 2 - laser_width / 2
-        laser_y = enemy_y + laser_height / 2
+    for i in range(len(lasers)):
+        if lasers[i].y > HEIGHT:
+            lasers[i].beamed = False
+            lasers[i].x = enemies[i].x + enemies[i].width / 2 - lasers[i].width / 2
+            lasers[i].y = enemies[i].y + lasers[i].height / 2
 
     # create frame by placing objects on the surface
     scoreboard()
-    laser(laser_x, laser_y)
-    enemy(enemy_x, enemy_y)
-    bullet(bullet_x, bullet_y)
-    player(player_x, player_y)
+    for laser in lasers:
+        laser.draw()
+    for enemy in enemies:
+        enemy.draw()
+    bullet.draw()
+    player.draw()
 
     # render the display
     pygame.display.update()
