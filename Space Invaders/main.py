@@ -1,7 +1,7 @@
 # Author: Atanu Sarkar
 # Space Invaders (my version)
-# v1.1.0
-# 09-April-2020, 02:11 AM (IST)
+# v1.1.1
+# 09-April-2020, 03:04 AM (IST)
 
 import pygame
 import random
@@ -23,6 +23,8 @@ life = 3
 kills = 0
 difficulty = 1
 level = 1
+max_kill = 5
+max_difficulty = 5
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
@@ -196,6 +198,36 @@ def collision_check(object1, object2):
 #     return distance < ((object1_diameter + object2_diameter) / 2)
 
 
+def level_up():
+    global level
+    global difficulty
+    level += 1
+    life += 1       # grant a life
+    difficulty = 1  # reset difficulty
+    # TODO: change player and bullet speeds, enemy laser speed and firing probability wrt level
+    #  come up with interesting gameplay ideas.
+    #  variables in hand:
+    #  1. speed of weapons
+    #  2. enemy (up to 6) & player velocity
+    #  3. laser firing probability
+    #  future ideas:
+    #  1. add new type of enemies
+    #  2. add new player spaceship and bullets!
+    #  future features:
+    #  1. create player profile ad store highest score to DB
+    #  2. multiplayer
+    if level % 3 == 0:
+        player.dx += 1
+        bullet.dy += 1
+
+    font = pygame.font.SysFont("freesansbold", 64)
+    gameover_sprint = font.render("LEVEL UP", True, (255, 255, 255))
+    window.blit(gameover_sprint, (WIDTH / 2 - 120, HEIGHT / 2 - 32))
+    pygame.display.update()
+    init_game()
+    time.sleep(1.0)
+
+
 def respawn(enemy_obj):
     enemy_obj.x = random.randint(0, (WIDTH - enemy_obj.width))
     enemy_obj.y = random.randint(((HEIGHT / 10) * 1 - (enemy_obj.height / 2)),
@@ -210,10 +242,12 @@ def kill_enemy(player_obj, bullet_obj, enemy_obj):
     enemy_obj.kill_sound.play()
     bullet_obj.x = player_obj.x + player_obj.width / 2 - bullet_obj.width / 2
     bullet_obj.y = player_obj.y + bullet_obj.height / 2
-    score = score + 10 * difficulty
+    score = score + 10 * difficulty * level
     kills += 1
-    if kills % 10 == 0:
+    if kills % max_kill == 0:
         difficulty += 1
+        if (difficulty == max_difficulty) and (life != 0):
+            level_up()
         init_background_music()
     print("Score:", score)
     print("level:", level)
@@ -347,6 +381,9 @@ def init_game():
 
     global enemies
     global lasers
+
+    enemies.clear()
+    lasers.clear()
 
     for lev in range(level):
         enemy_x = random.randint(0, (WIDTH - enemy_width))
