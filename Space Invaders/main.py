@@ -201,6 +201,7 @@ def collision_check(object1, object2):
 def level_up():
     global level
     global difficulty
+    global life
     level += 1
     life += 1       # grant a life
     difficulty = 1  # reset difficulty
