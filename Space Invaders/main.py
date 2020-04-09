@@ -24,8 +24,8 @@ life = 3
 kills = 0
 difficulty = 1
 level = 1
-max_kill = 5
-max_difficulty = 5
+kills_to_difficulty_up = 5
+difficulty_to_level_up = 5
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
@@ -58,7 +58,9 @@ pygame.display.set_icon(window_icon)
 
 # game sounds
 pause_sound = None
+level_up_sound = None
 weapon_annihilation_sound = None
+game_over_sound = None
 
 # create background
 background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
@@ -74,7 +76,10 @@ def init_background_music():
     if difficulty == 1:
         mixer.quit()
         mixer.init()
-    mixer.music.load(background_music_paths[difficulty - 1])
+    if difficulty <= 6:
+        mixer.music.load(background_music_paths[difficulty - 1])
+    else:
+        mixer.music.load(background_music_paths[5])
     mixer.music.play(-1)
 
 
@@ -204,9 +209,11 @@ def collision_check(object1, object2):
 
 
 def level_up():
+    global life
     global level
     global difficulty
-    global life
+    global difficulty_to_level_up
+    level_up_sound.play()
     level += 1
     life += 1       # grant a life
     difficulty = 1  # reset difficulty
@@ -225,6 +232,9 @@ def level_up():
     if level % 3 == 0:
         player.dx += 1
         bullet.dy += 1
+        difficulty_to_level_up += 1
+    if difficulty_to_level_up > 7:
+        difficulty_to_level_up = 7
 
     font = pygame.font.SysFont("freesansbold", 64)
     gameover_sprint = font.render("LEVEL UP", True, (255, 255, 255))
@@ -250,9 +260,9 @@ def kill_enemy(player_obj, bullet_obj, enemy_obj):
     bullet_obj.y = player_obj.y + bullet_obj.height / 2
     score = score + 10 * difficulty * level
     kills += 1
-    if kills % max_kill == 0:
+    if kills % kills_to_difficulty_up == 0:
         difficulty += 1
-        if (difficulty == max_difficulty) and (life != 0):
+        if (difficulty == difficulty_to_level_up) and (life != 0):
             level_up()
         init_background_music()
     print("Score:", score)
@@ -267,13 +277,16 @@ def rebirth(player_obj):
 
 
 def gameover_screen():
-    mixer.quit()
     scoreboard()
     font = pygame.font.SysFont("freesansbold", 64)
     gameover_sprint = font.render("GAME OVER", True, (255, 255, 255))
     window.blit(gameover_sprint, (WIDTH / 2 - 140, HEIGHT / 2 - 32))
     pygame.display.update()
-    time.sleep(5.0)
+
+    mixer.music.stop()
+    game_over_sound.play()
+    time.sleep(13.0)
+    mixer.quit()
 
 
 def gameover():
@@ -339,15 +352,26 @@ def destroy_weapons(player_obj, bullet_obj, enemy_obj, laser_obj):
 
 
 def pause_game():
+    pause_sound.play()
     scoreboard()
     font = pygame.font.SysFont("freesansbold", 64)
     gameover_sprint = font.render("PAUSED", True, (255, 255, 255))
     window.blit(gameover_sprint, (WIDTH / 2 - 80, HEIGHT / 2 - 32))
     pygame.display.update()
-    mixer.quit()
+    mixer.music.pause()
 
 
 def init_game():
+    global pause_sound
+    global level_up_sound
+    global game_over_sound
+    global weapon_annihilation_sound
+
+    pause_sound = mixer.Sound("res/sounds/pause.wav")
+    level_up_sound = mixer.Sound("res/sounds/1up.wav")
+    game_over_sound = mixer.Sound("res/sounds/gameover.wav")
+    weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
+
     # player
     player_img_path = "res/images/spaceship.png"  # 64 x 64 px image
     player_width = 64
@@ -414,15 +438,11 @@ def init_game():
                           shoot_probability, relaxation_time, laser_beam_sound_path)
         lasers.append(laser_obj)
 
-    # global pause_sound
-    global weapon_annihilation_sound
-    # pause_sound = mixer.Sound("/res/sounds/Pause.wav")
-    weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
-
 
 # init game
 init_game()
 init_background_music()
+runned_once = False
 
 # main game loop begins
 while running:
@@ -489,10 +509,12 @@ while running:
     # check for pause game event
     if pause_state == 2:
         pause_state = 0
-        init_background_music()
+        runned_once = False
+        mixer.music.unpause()
     if pause_state == 1:
-        # pause_sound.play()
-        pause_game()
+        if not runned_once:
+            runned_once = True
+            pause_game()
         continue
     # manipulate game objects based on events and player actions
     # player spaceship movement
