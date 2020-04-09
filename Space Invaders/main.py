@@ -17,6 +17,7 @@ HEIGHT = 600
 
 # global variables
 running = True
+pause_state = 0
 score = 0
 highest_score = 0
 life = 3
@@ -38,7 +39,6 @@ player = type('Player', (), {})()
 bullet = type('Bullet', (), {})()
 enemies = []
 lasers = []
-weapon_annihilation_sound = None
 
 # initialize pygame
 pygame.init()
@@ -48,12 +48,17 @@ LEFT_ARROW_KEY_PRESSED = 0
 RIGHT_ARROW_KEY_PRESSED = 0
 UP_ARROW_KEY_PRESSED = 0
 SPACE_BAR_PRESSED = 0
+ENTER_KEY_PRESSED = 0
 
 # create display window
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 window_icon = pygame.image.load("res/images/alien.png")
 pygame.display.set_icon(window_icon)
+
+# game sounds
+pause_sound = None
+weapon_annihilation_sound = None
 
 # create background
 background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
@@ -333,6 +338,15 @@ def destroy_weapons(player_obj, bullet_obj, enemy_obj, laser_obj):
 # timer.run()
 
 
+def pause_game():
+    scoreboard()
+    font = pygame.font.SysFont("freesansbold", 64)
+    gameover_sprint = font.render("PAUSED", True, (255, 255, 255))
+    window.blit(gameover_sprint, (WIDTH / 2 - 80, HEIGHT / 2 - 32))
+    pygame.display.update()
+    mixer.quit()
+
+
 def init_game():
     # player
     player_img_path = "res/images/spaceship.png"  # 64 x 64 px image
@@ -400,7 +414,9 @@ def init_game():
                           shoot_probability, relaxation_time, laser_beam_sound_path)
         lasers.append(laser_obj)
 
+    # global pause_sound
     global weapon_annihilation_sound
+    # pause_sound = mixer.Sound("/res/sounds/Pause.wav")
     weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
 
 
@@ -441,6 +457,11 @@ while running:
             if event.key == pygame.K_SPACE:
                 print("LOG: Space Bar Pressed Down")
                 SPACE_BAR_PRESSED = 1
+            # Enter Key down ("Carriage RETURN key" from old typewriter lingo)
+            if event.key == pygame.K_RETURN:
+                print("LOG: Enter Key Pressed Down")
+                ENTER_KEY_PRESSED = 1
+                pause_state += 1
 
         # Keypress Up Event
         if event.type == pygame.KEYUP:
@@ -460,7 +481,19 @@ while running:
             if event.key == pygame.K_SPACE:
                 print("LOG: Space Bar Released")
                 SPACE_BAR_PRESSED = 0
+            # Enter Key down ("Carriage RETURN key" from old typewriter lingo)
+            if event.key == pygame.K_RETURN:
+                print("LOG: Enter Key Released")
+                ENTER_KEY_PRESSED = 0
 
+    # check for pause game event
+    if pause_state == 2:
+        pause_state = 0
+        init_background_music()
+    if pause_state == 1:
+        # pause_sound.play()
+        pause_game()
+        continue
     # manipulate game objects based on events and player actions
     # player spaceship movement
     if RIGHT_ARROW_KEY_PRESSED:
