@@ -29,23 +29,28 @@ The features of the game is as follows:
 * The game has a **background music** (the classic Space Invaders music) which changes and becomes *more intense* with increase in *difficulty*.
 * The game pause has the classic sound effect
 * Each game object and every Interactions has sound effects.
-* The game has key logging feature and every input is logged into the console
-* The game also has `FPS Tracking` and `Each Frame Render time` in miliseconds and displays it in the game.
+* The game has **key logging** feature and every input is **logged into the console**
+* The game also has **FPS Tracking** and Each **Frame Render time** in miliseconds and displays it in the game.
 
 ## Gameplay
 Here is a short **gameplay** of the game at `Level 01` `Difficulty 01`:
 
-![gameplay L01D01](./assets/my space invaders - gameplay L01D01.gif)
+![gameplay L01D01](./assets/my_space_invaders-gameplay_L01D01.gif)
 
 
 A demo of in game **pause feature** in action at `Level 05` `Difficulty 03`:
 
-![pause demo](./assets/my space invaders - pause.gif)
+![pause demo](./assets/my_space_invaders-pause.gif)
 
 
 A look at **Game Over** Screen:
 
-![gameover](./assets/my space invaders - gameover.gif)
+![gameover](./assets/my_space_invaders-gameover.gif)
+
+
+**Logging** **KeyStrokes** and **Game states** on the console:
+
+![logging](./assets/my_space_invaders-logging.gif)
 
 ## Installation
 #### On windows:
