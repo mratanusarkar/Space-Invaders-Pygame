@@ -54,9 +54,9 @@ A look at **Game Over** Screen:
 
 ## Installation
 #### On windows:
-1. ensure that you have **python** and **pip** on your machine
-2. clone the repo to a local directory
-3. open command prompt (cmd) and enter the following commands:
+1. ensure that you have **python** and **pip** on your machine. If not, install it from [here](https://www.python.org/downloads/).
+2. clone the repo to a local directory or download it as zip and un-zip it.
+3. open windows command prompt (cmd) and enter the following commands:
 4. create a virtual environment `py -m pip install --user virtualenv`
 5. `py -m venv env`
 6. activate the virtual environment `.\env\Scripts\activate`
