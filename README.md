@@ -71,20 +71,20 @@ All the resources used are mentioned below:
 
 #### Images:
 * [background.jpg](https://wallpaperscraft.com/download/galaxy_universe_stars_125862/800x600)
-* [alien.png](https://www.freepik.com/)
-* [beam.png](https://www.freepik.com/)
-* [bullet.png](https://www.freepik.com/)
-* [enemy.png](https://www.freepik.com/)
-* [rocket.png](https://www.freepik.com/)
-* [spaceship.png](https://www.freepik.com/)
+* [alien.png](https://www.flaticon.com/free-icon/alien_389125)
+* [beam.png](https://www.flaticon.com/free-icon/bolt_414858)
+* [bullet.png](https://www.flaticon.com/free-icon/bullet_224681)
+* [enemy.png](http://getdrawings.com/space-invaders-icon#space-invaders-icon-70.png)
+* [rocket.png](https://www.flaticon.com/free-icon/startup_1067357)
+* [spaceship.png](https://www.flaticon.com/free-icon/space-invaders_744737)
 
 #### Music and Sounds:
 * [1up.wav](https://www.sounds-resource.com/nes/smb3/sound/768/)
 * [annihilation.wav](https://freesound.org/people/Robinhood76/sounds/187646/)
 * [enemykill.wav](https://freesound.org/people/SilverIllusionist/sounds/470585/)
-* [explosion.wav](https://github.com/attreyabhatt/Space-Invaders-Pygame/blob/master/explosion.wav)
+* [explosion.wav](https://freesound.org/people/IdkMrGarcia/sounds/446624/)
 * [gameover.wav](https://freesound.org/people/MattiaGiovanetti/sounds/483056/)
 * [gunshot.wav](https://freesound.org/people/pauliep83/sounds/34251/)
-* [laser.wav](https://github.com/attreyabhatt/Space-Invaders-Pygame/blob/master/laser.wav)
+* [laser.wav](https://freesound.org/people/THE_bizniss/sounds/39456/)
 * [pause.wav](https://www.sounds-resource.com/nes/smb3/sound/768/)
 * [Space_Invaders_Music.ogg](https://en.wikipedia.org/wiki/File:Space_Invaders_Music.ogg)
