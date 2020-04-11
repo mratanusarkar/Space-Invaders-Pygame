@@ -1,7 +1,7 @@
 # Author: Atanu Sarkar
 # Space Invaders (my version)
-# v1.1.1
-# 09-April-2020, 03:04 AM (IST)
+# v1.1.4
+# 11-April-2020, 03:04 AM (IST)
 
 import pygame
 import random
@@ -24,8 +24,8 @@ life = 3
 kills = 0
 difficulty = 1
 level = 1
-kills_to_difficulty_up = 5
-difficulty_to_level_up = 5
+max_kills_to_difficulty_up = 5
+max_difficulty_to_level_up = 5
 initial_player_velocity = 3.0
 initial_enemy_velocity = 1.0
 weapon_shot_velocity = 5.0
@@ -49,6 +49,7 @@ RIGHT_ARROW_KEY_PRESSED = 0
 UP_ARROW_KEY_PRESSED = 0
 SPACE_BAR_PRESSED = 0
 ENTER_KEY_PRESSED = 0
+ESC_KEY_PRESSED = 0
 
 # create display window
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -212,7 +213,7 @@ def level_up():
     global life
     global level
     global difficulty
-    global difficulty_to_level_up
+    global max_difficulty_to_level_up
     level_up_sound.play()
     level += 1
     life += 1       # grant a life
@@ -232,9 +233,13 @@ def level_up():
     if level % 3 == 0:
         player.dx += 1
         bullet.dy += 1
-        difficulty_to_level_up += 1
-    if difficulty_to_level_up > 7:
-        difficulty_to_level_up = 7
+        max_difficulty_to_level_up += 1
+        for each_laser in lasers:
+            each_laser.shoot_probability += 0.1
+            if each_laser.shoot_probability > 1.0:
+                each_laser.shoot_probability = 1.0
+    if max_difficulty_to_level_up > 7:
+        max_difficulty_to_level_up = 7
 
     font = pygame.font.SysFont("freesansbold", 64)
     gameover_sprint = font.render("LEVEL UP", True, (255, 255, 255))
@@ -260,9 +265,9 @@ def kill_enemy(player_obj, bullet_obj, enemy_obj):
     bullet_obj.y = player_obj.y + bullet_obj.height / 2
     score = score + 10 * difficulty * level
     kills += 1
-    if kills % kills_to_difficulty_up == 0:
+    if kills % max_kills_to_difficulty_up == 0:
         difficulty += 1
-        if (difficulty == difficulty_to_level_up) and (life != 0):
+        if (difficulty == max_difficulty_to_level_up) and (life != 0):
             level_up()
         init_background_music()
     print("Score:", score)
@@ -482,6 +487,11 @@ while running:
                 print("LOG: Enter Key Pressed Down")
                 ENTER_KEY_PRESSED = 1
                 pause_state += 1
+            # Esc Key down
+            if event.key == pygame.K_ESCAPE:
+                print("LOG: Escape Key Pressed Down")
+                ESC_KEY_PRESSED = 1
+                pause_state += 1
 
         # Keypress Up Event
         if event.type == pygame.KEYUP:
@@ -501,10 +511,14 @@ while running:
             if event.key == pygame.K_SPACE:
                 print("LOG: Space Bar Released")
                 SPACE_BAR_PRESSED = 0
-            # Enter Key down ("Carriage RETURN key" from old typewriter lingo)
+            # Enter Key up ("Carriage RETURN key" from old typewriter lingo)
             if event.key == pygame.K_RETURN:
                 print("LOG: Enter Key Released")
                 ENTER_KEY_PRESSED = 0
+            # Esc Key up
+            if event.key == pygame.K_ESCAPE:
+                print("LOG: Escape Key Released")
+                ESC_KEY_PRESSED = 0
 
     # check for pause game event
     if pause_state == 2:
