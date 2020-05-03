@@ -1,4 +1,6 @@
 # Classic-Arcade-Games-Pygame
+[![HitCount](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame.svg)](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame)
+
 A pygame Implementation of the popular Classic Atari and NES Arcade games
 
 Here are the list of games in this collection:
