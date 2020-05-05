@@ -1,13 +1,14 @@
-# Classic-Arcade-Games-Pygame
+# Space-Invaders-Pygame
 [![HitCount](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame.svg)](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame)
 
 A pygame Implementation of the popular Classic Atari and NES Arcade games
 
-Here are the list of games in this collection:
-1. Space Invaders (my version)
+This is a part of a series of Classic Arcade Games implemented in Pygames.
+list of games in this collection:
+1. [Space Invaders](https://github.com/mratanusarkar/Space-Invaders-Pygame/) (my version)
 2. more coming soon . . .
 
-# 1. Space Invaders
+# Space Invaders
 The classic [Space Invaders](https://en.wikipedia.org/wiki/Space_Invaders) was the first blockbuster arcade video game, responsible for starting the [golden age of video arcade games](https://en.wikipedia.org/wiki/Golden_age_of_arcade_video_games). It also sets the template for the [shoot 'em up](https://en.wikipedia.org/wiki/Shoot_%27em_up) genre, and influences nearly every shooter game released since then. 
 
 The classic Space Invaders 1978 was created by [Tomohiro Nishikado](https://en.wikipedia.org/wiki/Tomohiro_Nishikado) and was released by [Taito Corporation](https://en.wikipedia.org/wiki/Taito) in the year 1978.
