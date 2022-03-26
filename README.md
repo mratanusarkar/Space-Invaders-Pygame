@@ -1,5 +1,5 @@
 # Space-Invaders-Pygame
-[![HitCount](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame.svg)](http://hits.dwyl.com/mratanusarkar/https://githubcom/mratanusarkar/Classic-Arcade-Games-Pygame)
+[![HitCount](https://hits.dwyl.com/mratanusarkar/Space-Invaders-Pygame.svg?style=flat)](http://hits.dwyl.com/mratanusarkar/Space-Invaders-Pygame)
 
 A pygame Implementation of the popular Classic Atari and NES Arcade games
 
