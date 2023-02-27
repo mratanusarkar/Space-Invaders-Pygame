@@ -56,7 +56,11 @@ A look at **Game Over** Screen:
 ![logging](./assets/my_space_invaders-logging.gif)
 
 ## Installation
-#### On windows:
+### On windows:
+
+Just double-click the `runner.bat` file to launch the game, if you already have **python** and **pip** on your machine.
+
+You can also manually install and run the game by following the manual process below:
 1. ensure that you have **python** and **pip** on your machine. If not, install it from [here](https://www.python.org/downloads/).
 2. clone the repo to a local directory or download it as zip and un-zip it.
 3. open windows command prompt (cmd) and enter the following commands:
@@ -68,6 +72,11 @@ A look at **Game Over** Screen:
 
 you can skip creating a virtual environment if you wish and **ignore steps 4-6** but it is not recommended.
 
+### On Linux or macOS:
+
+Navigate to `main.py` and run `python main.py`, if you already have **python** and **pip** on your machine.
+
+If not, get python and then run the main to launch the game!
 
 ## References and Resources
 All the resources used are mentioned below:
