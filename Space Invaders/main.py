@@ -8,6 +8,7 @@ import random
 import math
 from pygame import mixer
 import time
+import sys #Added
 
 # import sched
 
@@ -64,7 +65,9 @@ weapon_annihilation_sound = None
 game_over_sound = None
 
 # create background
-background_img = pygame.image.load("res/images/background.jpg")  # 800 x 600 px image
+background_img = pygame.image.load("res/images/background.jpg") #Added another background
+background_img2 = pygame.image.load("res/images/background2.jpg")
+  # 800 x 600 px image
 background_music_paths = ["res/sounds/Space_Invaders_Music.ogg",
                           "res/sounds/Space_Invaders_Music_x2.ogg",
                           "res/sounds/Space_Invaders_Music_x4.ogg",
@@ -251,8 +254,10 @@ def level_up():
 
 def respawn(enemy_obj):
     enemy_obj.x = random.randint(0, (WIDTH - enemy_obj.width))
-    enemy_obj.y = random.randint(((HEIGHT / 10) * 1 - (enemy_obj.height / 2)),
-                                 ((HEIGHT / 10) * 4 - (enemy_obj.height / 2)))
+    enemy_obj.y = random.randint(
+        int((HEIGHT / 10) * 1 - (enemy_obj.height / 2)), #It was missing to declare as int
+        int((HEIGHT / 10) * 4 - (enemy_obj.height / 2))
+    )
 
 
 def kill_enemy(player_obj, bullet_obj, enemy_obj):
@@ -290,10 +295,20 @@ def gameover_screen():
 
     mixer.music.stop()
     game_over_sound.play()
-    time.sleep(13.0)
-    mixer.quit()
+    
+    pygame.time.set_timer(pygame.USEREVENT, 10000)
 
-
+    while True:   
+        for event in pygame.event.get(): #Include option to close the game alone after 10 seconds after "Game Over" and also added the option to start again after pressing Enter.
+            if event.type == pygame.QUIT:
+                time.sleep(10)
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    init_game()
+                    return
+                
 def gameover():
     global running
     global score
@@ -329,7 +344,6 @@ def kill_player(player_obj, enemy_obj, laser_obj):
         rebirth(player_obj)
     else:
         gameover()
-
 
 def destroy_weapons(player_obj, bullet_obj, enemy_obj, laser_obj):
     bullet_obj.fired = False
@@ -431,7 +445,10 @@ def init_game():
 
     for lev in range(level):
         enemy_x = random.randint(0, (WIDTH - enemy_width))
-        enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+        enemy_y = random.randint(
+            int((HEIGHT / 10) * 1 - (enemy_height / 2)), #It was returning a float number that caused an error that prevented the game from starting. I changed it to int for better functionality.
+            int((HEIGHT / 10) * 4 - (enemy_height / 2)) 
+        )
         laser_x = enemy_x + enemy_width / 2 - laser_width / 2
         laser_y = enemy_y + laser_height / 2
 
@@ -456,7 +473,11 @@ while running:
 
     # background
     window.fill((0, 0, 0))
-    window.blit(background_img, (0, 0))
+
+    if difficulty <2:
+        window.blit(background_img, (0, 0))
+    else:
+        window.blit(background_img2, (0, 0))
 
     # register events
     for event in pygame.event.get():
