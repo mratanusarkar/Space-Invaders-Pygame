@@ -522,4 +522,3 @@ while running:
         fps = frame_count
         frame_count = 0
         total_time = 0
-                            
