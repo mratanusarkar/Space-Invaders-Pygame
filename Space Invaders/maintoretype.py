@@ -431,7 +431,7 @@ def init_game():
 
     for lev in range(level):
         enemy_x = random.randint(0, (WIDTH - enemy_width))
-        enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+        enemy_y = random.randint(((HEIGHT // 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
         laser_x = enemy_x + enemy_width / 2 - laser_width / 2
         laser_y = enemy_y + laser_height / 2
 
