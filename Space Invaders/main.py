@@ -238,4 +238,288 @@ def rebirth(player_obj):
 
 def gameover_screen():
     scoreboard()
-    font= pygame.font.SysFont
+    font= pygame.font.SysFont("freesansbold", 64)
+    gameover_sprint = font.render("GAME OVER", True, (255, 255, 255))
+    window.blit(gameover_sprint, (WIDTH / 2 - 140, HEIGHT / 2 - 32))
+    pygame.display.update()
+
+    mixer.music.stop()
+    game_over_sound.play()
+    time.sleep(13.0)
+    mixer.quit()
+
+
+def gameover():
+    global running
+    global score
+    global highest_score
+
+    if score > highest_score:
+        highest_score = score
+
+    if score > highest_score:
+        highest_score = score
+
+    print("----------------")
+    print("GAME OVER ! !")
+    print("----------------")
+    print("you died at")
+    print("Level:", level)
+    print("difficulty:", difficulty)
+    print("Your Score:", score)
+    print("----------------")
+    print("Try Again ! !")
+    print("----------------")
+    running = False
+    gameover_screen()
+
+
+def kill_player(player_obj, enemy_obj, laser_obj):
+    global life
+    laser_obj.beamed = False
+    player_obj.kill_sound.play()
+    laser_obj.x = enemy_obj.x + enemy_obj.width / 2 - laser_obj.width / 2
+    laser_obj.y = enemy_obj.y + laser_obj.height / 2
+    life -= 1
+    print("Life Left:", life)
+    if life > 0:
+        rebirth(player_obj)
+    else:
+        gameover()
+
+
+def destroy_weapons(player_obj, bullet_obj, enemy_obj, laser_obj):
+    bullet_obj.fired = False
+    laser_obj.beamed = False
+    weapon_annihilation_sound.play()
+    bullet_obj.x = player_obj.x + player_obj.width / 2 - bullet_obj.width / 2
+    bullet_obj.y = player_obj.y + bullet_obj.height / 2
+    laser_obj.x = enemy_obj.x + enemy_obj.width / 2 - laser_obj.width / 2
+    laser_obj.y = enemy_obj.y + laser_obj.height / 2
+
+
+def pause_game():
+    pause_sound.play()
+    scoreboard()
+    font = pygame.font.SysFont("freesansbold", 64)
+    gameover_sprint = font.render("PAUSED", True, (255, 255, 255))
+    window.blit(gameover_sprint, (WIDTH / 2 - 80, HEIGHT / 2 - 32))
+    pygame.display.update()
+    mixer.music.pause()
+
+
+def init_game():
+    global pause_sound
+    global level_up_sound
+    global game_over_sound
+    global weapon_annihilation_sound
+
+    pause_sound = mixer.Sound("res/sounds/pause.wav")
+    level_up_sound = mixer.Sound("res/sounds/1up.wav")
+    game_over_sound = mixer.Sound("res/sounds/gameover.wav")
+    weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
+
+    player_img_path = "res/images/spaceship.png"
+    player_width = 64
+    player_height = 64
+    player_x = (WIDTH / 2) - (player_width / 2)
+    player_y = (HEIGHT / 10) * 9 - (player_height / 2)
+    player_dx = initial_player_velocity
+    player_dy = 0
+    player_kill_sound_path = "res/sounds/explosion.wav"
+
+    global player
+    player = Player(player_img_path, player_width, player_height, player_x,
+                    player_kill_sound_path)
+    
+
+    enemy_img_path = "res/images/enemy.png"
+    enemy_width = 64
+    enemy_height = 64
+    enemy_dx = initial_enemy_velocity
+    enemy_dy = (HEIGHT / 10) / 2
+    enemy_kill_sound_path = "res/sounds/enemykill.wav"
+
+    laser_img_path = "res/images/beam.png"
+    laser_width = 24
+    laser_height = 24
+    laser_dx = 0
+    laser_dy = weapon_shot_velocity
+    shoot_probability = 0.3
+    relaxition_time = 100
+    laser_beam_sound_path = "res/sounds/laser.wav"
+
+    global enemies
+    global lasers
+
+    enemies.clear()
+    lasers.clear()
+
+    for lev in range(level):
+        enemy_x = random.randint(0, (WIDTH - enemy_width))
+        enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+        laser_x = enemy_x + enemy_width / 2 - laser_width / 2
+        laser_y = enemy_y + laser_height / 2
+
+        enemy_obj = Enemy(enemy_img_path, enemy_width, enemy_height, enemy_x, enemy_y, enemy_dx, enemy_dy,
+                          enemy_kill_sound_path)
+        enemies.append(enemy_obj)
+
+        laser_obj = Laser(laser_img_path, laser_width, laser_height, laser_x, laser_y, laser_dx, laser_dy,
+                          shoot_probability, relaxition_time, laser_beam_sound_path)
+        lasers.append(laser_obj)
+
+
+init_game()
+init_background_music()
+rinned_once = False
+
+while running:
+    start_time = time.time()
+
+    window.fill((0, 0, 0))
+    window.blit(background_img, (0, 0))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                print("LOG: Left Arrow Key Pressed Down")
+                LEFT_ARROW_KEY_PRESSED = 1
+            if event.key == pygame.K_RIGHT:
+                print("LOG: Right Arrow Key Pressed Down")
+                RIGHT_ARROW_KEY_PRESSED = 1
+            if event.key == pygame.K_UP:
+                print("LOG: Up Arrow Key Pressed Down")
+                UP_ARROW_KEY_PRESSED = 1
+            if event.key == pygame.K_SPACE:
+                print("LOG: Space Bar Pressed Down")
+                SPACE_BAR_PRESSED = 1
+            if event.key == pygame.K_RETURN:
+                print("LOG: Enter Key Pressed Down")
+                ENTER_KEY_PRESSED = 1
+                pause_state += 1
+            if event.key == pygame.K_ESCAPE:
+                print("LOG: Escape Key Pressed Down")
+                ESC_KEY_PRESSED = 1
+                pause_state += 1
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                print("LOG: Right Arrow Key Released")
+                RIGHT_ARROW_KEY_PRESSED = 0
+            if event.key == pygame.K_LEFT:
+                print("LOG: Left Arrow Key Released")
+                LEFT_ARROW_KEY_PRESSED = 0
+            if event.key == pygame.K_UP:
+                print("LOG: Up Arrow Key Released")
+            if event.key == pygame.K_SPACE:
+                print("LOG: Space Bar Released")
+                SPACE_BAR_PRESSED = 0
+            if event.key == pygame.K_RETURN:
+                print("LOG: Enter Key Released")
+                ENTER_KEY_PRESSED = 0
+            if event.key == pygame.K_ESCAPE:
+                print("LOG: Escape Key Released")
+                ESC_KEY_PRESSED = 0
+
+    if pause_state == 2:
+        pause_state = 0
+        runned_once = False
+        mixer.music.unpause()
+    if pause_state == 1:
+        if not runned_once:
+            runned_once = True
+            pause_game()
+        continue
+    if RIGHT_ARROW_KEY_PRESSED:
+        player.x += player.dx
+    if LEFT_ARROW_KEY_PRESSED:
+        player.x -= player.dx
+    if (SPACE_BAR_PRESSED or UP_ARROW_KEY_PRESSED) and not bullet.fired:
+        bullet.fired = True
+        bullet.fire_sound.play()
+        bullet.x = player.x + player.width / 2 - bullet.width / 2
+        bullet.y = player.y + bullet.height / 2
+    if bullet.fired:
+        bullet.y -= bullet.dy
+
+    for i in range(len(enemies)):
+        if not lasers[i].beamed:
+            lasers[i].shoot_timer += 1
+            if lasers[i].shoot_timer == lasers[i].relaxation_time:
+                lasers[i].shoot_timer = 0
+                random_chance = random.randint(0, 100)
+                if random_chance <= (lasers[i].shoot_probability * 100):
+                    lasers[i].beamed = True
+                    lasers[i].beam_sound.play()
+                    lasers[i].x = enemies[i].x + enemies[i].width / 2 - lasers[i].width / 2
+                    lasers[i].y = enemies[i].y + lasers[i].height / 2
+        enemies[i].x += enemies[i].dx * float(2 ** (difficulty - 1))
+        if lasers[i].beamed:
+            lasers[i].y += lasers[i].dy
+
+    for i in range(len(enemies)):
+        bullet_enemy_collision = collision_check(bullet, enemies[i])
+        if bullet_enemy_collision:
+            kill_enemy(player, bullet, enemies[i])
+
+    for i in range(len(lasers)):
+        laser_player_collision = collision_check(lasers[i], player)
+        if laser_player_collision:
+            kill_player(player, enemies[i], lasers[i])
+
+    for i in range(len(enemies)):
+        enemy_player_collision = collision_check(enemies[i], player)
+        if enemy_player_collision:
+            kill_enemy(player, bullet, enemies[1])
+            kill_player(player, enemies[i], lasers[i])
+
+    for i in range(len(lasers)):
+        bullet_laser_collision = collision_check(bullet, lasers[i])
+        if bullet_laser_collision:
+            destroy_weapons(player, bullet, enemies[i], lasers[i])
+
+    if player.x < 0:
+        player.x = 0
+    if player.x > WIDTH - player.width:
+        player.x = WIDTH - player.width
+    for enemy in enemies:
+        if enemy.x <= 0:
+            enemy.dx = abs(enemy.dx) * 1
+            enemy.y += enemy.dy
+        if enemy.x >= WIDTH - enemy.width:
+            enemy.dx = abs(enemy.dx) * -1
+            enemy.y += enemy.dy
+    if bullet.y < 0:
+        bullet.fired = False
+        bullet.x = player.x + player.width / 2 - bullet.width / 2
+        bullet.y = player.y + bullet.height / 2
+    for i in range(len(lasers)):
+        if lasers[i].y > HEIGHT:
+            lasers[i].beamed = False
+            lasers[i].x = enemies[i].x + enemies[i].width / 2 - lasers[i].width / 2
+            lasers[i].y = enemies[i].y + lasers[i].height / 2
+
+    scoreboard()
+    for laser in lasers:
+        laser.draw()
+    for enemy in enemies:
+        enemy.draw()
+    bullet.draw()
+    player.draw()
+
+    pygame.display.update()
+
+    frame_count += 1
+    end_time = time.time()
+    single_frame_rendering_time = end_time - start_time
+
+    total_time = total_time + single_frame_rendering_time
+    if total_time >= 1.0:
+        fps = frame_count
+        frame_count = 0
+        total_time = 0
+                            
