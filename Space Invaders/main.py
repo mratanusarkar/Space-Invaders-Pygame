@@ -42,7 +42,7 @@ ESC_KEY_PRESSED = 0
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
-window_icon = pygame.image.load("res/images/alien.png")
+window_icon = pygame.image.load("Space Invaders/res/images/alien.png")
 pygame.display.set_icon(window_icon)
 
 pause_sound = None
@@ -50,7 +50,7 @@ level_up_sound = None
 weapon_annihilation_sound = None
 game_over_sound = None
 
-background_img = pygame.image.load("res/images/background.jpg")
+background_img = pygame.image.load("Space Invaders/res/images/background.jpg")
 background_music_paths = ["res/sounds/Space_Invaders_Music.ogg",
                           "res/sounds/Space_Invaders_Music_x2.ogg",
                           "res/sounds/Space_Invaders_Music_x4.ogg",
@@ -314,40 +314,53 @@ def init_game():
     global game_over_sound
     global weapon_annihilation_sound
 
-    pause_sound = mixer.Sound("res/sounds/pause.wav")
-    level_up_sound = mixer.Sound("res/sounds/1up.wav")
-    game_over_sound = mixer.Sound("res/sounds/gameover.wav")
-    weapon_annihilation_sound = mixer.Sound("res/sounds/annihilation.wav")
+    pause_sound = mixer.Sound("Space Invaders/res/sounds/pause.wav")
+    level_up_sound = mixer.Sound("Space Invaders/res/sounds/1up.wav")
+    game_over_sound = mixer.Sound("Space Invaders/res/sounds/gameover.wav")
+    weapon_annihilation_sound = mixer.Sound("Space Invaders/res/sounds/annihilation.wav")
 
-    player_img_path = "res/images/spaceship.png"
+    player_img_path = "Space Invaders/res/images/spaceship.png"
     player_width = 64
     player_height = 64
     player_x = (WIDTH / 2) - (player_width / 2)
     player_y = (HEIGHT / 10) * 9 - (player_height / 2)
     player_dx = initial_player_velocity
     player_dy = 0
-    player_kill_sound_path = "res/sounds/explosion.wav"
+    player_kill_sound_path = "Space Invaders/res/sounds/explosion.wav"
 
     global player
-    player = Player(player_img_path, player_width, player_height, player_x,
+    player = Player(player_img_path, player_width, player_height, player_x, player_y, player_dx, player_dy,
                     player_kill_sound_path)
     
+    bullet_img_path = "Space Invaders/res/images/bullet.png"
+    bullet_width = 32
+    bullet_height = 32
+    bullet_x = player_x + player_width / 2 - bullet_width  / 2
+    bullet_y = player_y + bullet_height / 2
+    bullet_dx = 0
+    bullet_dy = weapon_shot_velocity
+    bullet_fire_sound_path = "Space Invaders/res/sounds/gunshot.wav"
 
-    enemy_img_path = "res/images/enemy.png"
+    global bullet
+    bullet = Bullet(bullet_img_path, bullet_width, bullet_height, bullet_x, bullet_y, bullet_dx, bullet_dy,
+                    bullet_fire_sound_path)
+    
+
+    enemy_img_path = "Space Invaders/res/images/enemy.png"
     enemy_width = 64
     enemy_height = 64
     enemy_dx = initial_enemy_velocity
     enemy_dy = (HEIGHT / 10) / 2
-    enemy_kill_sound_path = "res/sounds/enemykill.wav"
+    enemy_kill_sound_path = "Space Invaders/res/sounds/enemykill.wav"
 
-    laser_img_path = "res/images/beam.png"
+    laser_img_path = "Space Invaders/res/images/beam.png"
     laser_width = 24
     laser_height = 24
     laser_dx = 0
     laser_dy = weapon_shot_velocity
     shoot_probability = 0.3
     relaxition_time = 100
-    laser_beam_sound_path = "res/sounds/laser.wav"
+    laser_beam_sound_path = "Space Invaders/res/sounds/laser.wav"
 
     global enemies
     global lasers
@@ -357,7 +370,7 @@ def init_game():
 
     for lev in range(level):
         enemy_x = random.randint(0, (WIDTH - enemy_width))
-        enemy_y = random.randint(((HEIGHT / 10) * 1 - (enemy_height / 2)), ((HEIGHT / 10) * 4 - (enemy_height / 2)))
+        enemy_y = random.randint(((HEIGHT // 10) * 1 - (enemy_height // 2)), ((HEIGHT // 10) * 4 - (enemy_height // 2)))
         laser_x = enemy_x + enemy_width / 2 - laser_width / 2
         laser_y = enemy_y + laser_height / 2
 
