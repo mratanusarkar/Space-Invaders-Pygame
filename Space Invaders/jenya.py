@@ -114,7 +114,7 @@ pygame.draw.rect(screen, startd, [width - 180, height - 100, 40, 50])
 
 def game(
     lead_y,
-    lead_x,
+    lead_X,
     speed,
     count,
     ):
@@ -126,7 +126,7 @@ def game(
 
 
         keys = pygame.key.get_pressed()
-        if keys(pygame.K_UP):
+        if keys[pygame.K_UP]:
 
             lead_y -= 10
         if keys[pygame.K_DOWN]:
@@ -148,7 +148,7 @@ def game(
         else:
             pygame.draw.rect(screen, startd, [width - 100, 0, 100, 40])
         if width - 100 < mouse[0] < width and 0 < mouse[1] < 40:
-            if ev_type == pygame.MOUSEBUTTONDOWN:
+            if ev.type == pygame.MOUSEBUTTONDOWN:
                 pygame.quit()
 
         if e_p[0] > 0 and e_p[0] <= width:
@@ -158,16 +158,33 @@ def game(
             if e_p[1] <= 40 or e_p[1] >= height - 40:
                 e_p[1] = height / 2
             if e1_p[1] <= 40 or e1_p[1] >= height - 40:
-                e1_p[1] = random.randint(40, height - 40)
+                e1_p[1] = height / 2
+            e_p[1] = random.randint(enemy_size, height - enemy_size)
+            e_p[0] = width
+
+
+        if lead_x <= e_p[0] <= lead_x + 40 and lead_y >= e_p[1] >= lead_y - 40:
+            game_over()
+
+        if lead_y <= e_p[1] + enemy_size <= lead_y + 40 and lead_x <= e_p[0] <= lead_x + 40:
+            game_over()
+
+        pygame.draw.rect(screen, red, [e_p[0], eапмапрааааааак_p[1], enemy_size,enemy_size])
+        if e1_p[0] > 0 and e1_p[0] <= width + 100:
+            e1_p[0] -= 10
+        else:
+            if e1_p[1] <= 40 or e1_p[1] >= height - 40:
+                e1_p[1] = height / 2
             e1_p[1] = random.randint(enemy_size, height - 40)
             e1_p[0] = width + 100
-
+ 
         if lead_x <= e1_p[0] <= lead_x + 40 and lead_y >= e1_p[1] >= lead_y - 40:
             e1_p[0] = width + 100
             e1_p[1] = random.randint(40, height - 40)
             count += 1
             speed += 1
         if lead_y <= e1_p[1] + enemy_size <= lead_y + 40 and lead_x <= e1_p[0] <= lead_x + 40:
+
             e1_p[0] = width + 100
             e1_p[1] = random.randint(40, height - 40)
 
@@ -185,7 +202,7 @@ def game(
             game_over()
 
         pygame.draw.rect(screen, blue, [e1_p[0], e1_p[1], enemy_size,
-                        enemy_size])
+                         enemy_size])
         score1 = smallfont.render('Score:', True, white)
         screen.blit(score1, (width - 120, height - 40))
         screen.blit(exit2, (width - 80, 0))
@@ -214,4 +231,58 @@ def intro(
         else:
             if x < mouse[0] < x + width1 + 40 and y + 70 < mouse[1] < y \
                 + 70 + height1:
-                pygame.draw.rect(screen, startl, [x, y + 70, width1+40, height])
+                pygame.draw.rect(screen, startl, [x, y + 70, width1+40,height])
+            else:
+                
+                if x < mouse[0] < width1 + x and y + 140 < mouse[1] < y + 140 + height1:
+                    pygame.draw.rect(screen, startl, [x, y + 140,width1,height1])
+                else:
+                    pygame.draw.rect(screen, startd, [x, y, width1,height1])
+                    pygame.draw.rect(screen, startd, [x, y + 70, width1 
+                            + 40, height1])
+                    pygame.draw.rect(screen, startd, [x, y + 140,width1, height1])
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if x < mouse[0] < x + width1 and y < mouse[1] < y + height1:
+                #music()
+                game(lead_y, lead_x, speed, count)
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if x < mouse[0] < width1 + x and y + 140 < mouse[1] < y + 140 + height1:
+                pygame.quit()
+
+        if 0 <= colox_c1 <= 254 or 0 <= colox_c2 <= 254:
+            colox_c1 += 1
+            colox_c2 += 1
+        if colox_c1 >= 254 or colox_c2 >= 254:
+            colox_c1 = c3
+            colox_c2 = c3
+
+        pygame.draw.rect(screen, (c2, colox_c1, colox_c2), [0, 0, 40,
+                         height])
+        pygame.draw.rect(screen, (c2, colox_c1, colox_c2), [width - 40,
+                         0, 40, height])
+        smallfont = pygame.font.SysFont('Corbel', 35)
+        sig = smallfont.render('Deisgned by := Antriksh', True, white)
+        text = smallfont.render('Start', True, white)
+        text1 = smallfont.render('Options', True, white)
+        exit1 = smallfont.render('Exit', True, white)
+        colox = smallfont.render('Colox', True, (c1, colox_c1,
+                                 colox_c2))
+        screen.blit(colox, (312, 50))
+        screen.blit(text, (312, 295))
+        screen.blit(text1, (312, 365))
+        screen.blit(exit1, (312, 435))
+        screen.blit(sig, (320, height - 50))
+        clock.tick(60)
+        pygame.display.update()
+
+
+intro(
+    colox_c1,
+    colox_c2,
+    colox,
+    exit1,
+    text1,
+    text,
+    )

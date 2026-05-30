@@ -225,6 +225,7 @@ def game(
             count += 1
             speed += 1
         if lead_y <= e1_p[1] + enemy_size <= lead_y + 40 and lead_x <= e1_p[0] <= lead_x + 40:
+
             e1_p[0] = width + 100
             e1_p[1] = random.randint(40, height - 40)
             
